@@ -62,12 +62,21 @@
       color: #aaa;
     }
   </style>
-  <script>
+<script>
   fetch('./version.json')
     .then(r => r.json())
     .then(data => {
       document.getElementById('version-footer').textContent =
         `v${data.version} · ${data.commit.slice(0, 7)}`;
+
+      const changelog = document.getElementById('changelog');
+      if (data.changes && data.changes.length > 0) {
+        changelog.innerHTML = `
+          <p style="font-size:0.8rem; color:#aaa; margin-top:0.5rem;">Changes:</p>
+          <ul style="font-size:0.85rem; color:#666; text-align:left; padding-left:1.2rem;">
+            ${data.changes.map(c => `<li>${c}</li>`).join('')}
+          </ul>`;
+      }
     })
     .catch(() => {
       document.getElementById('version-footer').textContent = 'dev';
@@ -87,5 +96,7 @@
 </body>
 
 <footer id="version-footer">Deployed with GitHub Actions</footer>
+<div id="changelog"></div>
+
 
 </html>
