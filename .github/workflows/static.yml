@@ -33,7 +33,24 @@ jobs:
         uses: actions/checkout@v4
       - name: Generate version
         run: |
-          echo "{\"version\": \"1.0.${{ github.run_number }}\", \"commit\": \"${{ github.sha }}\"}" > version.json
+          PREV_TAG=$(git tag --sort=-creatordate | head -n 1)
+   
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"%s" -10)
+          else
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s")
+          fi
+
+          COMMITS_JSON=$(echo "$COMMITS" | jq -R . | jq -s .)
+
+          echo "{
+            \"version\": \"1.0.${{ github.run_number }}\",
+            \"commit\": \"${{ github.sha }}\",
+            \"changes\": $COMMITS_JSON
+          }" > version.json
+
+          git tag "deploy-${{ github.run_number }}"
+          git push origin "deploy-${{ github.run_number }}"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
